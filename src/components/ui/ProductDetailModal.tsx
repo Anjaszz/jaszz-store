@@ -54,10 +54,10 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ isOpen, onClose
             initial={{ scale: 0.98, opacity: 0, y: 40 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.98, opacity: 0, y: 40 }}
-            className="relative w-full max-w-4xl bg-white rounded-4xl border-[3px] border-black shadow-[20px_20px_0px_0px_#000] flex flex-col max-h-[90vh] overflow-hidden"
+            className="relative w-full max-w-4xl bg-white rounded-3xl md:rounded-4xl border-[3px] border-black shadow-[10px_10px_0px_0px_#000] md:shadow-[20px_20px_0px_0px_#000] flex flex-col max-h-[95vh] md:max-h-[90vh] overflow-hidden m-2"
           >
             {/* Header: Jaszz Style */}
-            <div className="bg-black py-6 px-10 flex items-center justify-between border-b-[3px] border-black shrink-0">
+            <div className="bg-black py-4 md:py-6 px-6 md:px-10 flex items-center justify-between border-b-[3px] border-black shrink-0">
               <div className="flex items-center gap-4">
                 <div className="bg-primary p-2.5 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000]">
                   <Info size={22} className="text-black" />
@@ -77,9 +77,9 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ isOpen, onClose
                 </button>
                 <button 
                   onClick={onClose}
-                  className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 hover:border-primary/50"
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10 hover:border-primary/50"
                 >
-                  <X size={28} />
+                  <X size={24} />
                 </button>
               </div>
             </div>
@@ -87,10 +87,10 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ isOpen, onClose
             <div className="flex-1 overflow-y-auto custom-scrollbar">
               <div className="grid grid-cols-1 md:grid-cols-2">
                 {/* Visual Section */}
-                <div className="p-10 bg-gray-50 flex items-center justify-center border-r-[3px] border-black/5">
-                   <div className="relative group w-full aspect-square max-w-sm">
+                <div className="p-6 md:p-10 bg-gray-50 flex items-center justify-center border-b-[3px] md:border-b-0 md:border-r-[3px] border-black/5">
+                   <div className="relative group w-full aspect-square max-w-[200px] md:max-w-sm">
                         <div className="absolute -inset-4 bg-primary blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
-                        <div className="relative h-full bg-white border-4 border-black rounded-[3rem] overflow-hidden shadow-2xl">
+                        <div className="relative h-full bg-white border-4 border-black rounded-3xl md:rounded-[3rem] overflow-hidden shadow-2xl">
                             {product.image_url ? (
                                 <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                             ) : (
@@ -114,27 +114,27 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ isOpen, onClose
                 </div>
 
                 {/* Content Section */}
-                <div className="p-10 md:p-12 space-y-10">
+                <div className="p-6 md:p-12 space-y-6 md:space-y-10">
                     <div className="space-y-4">
-                        <div className="text-xs font-black text-primary uppercase tracking-[0.4em] leading-none">{category.name}</div>
-                        <h2 className="text-4xl font-black text-black uppercase tracking-tighter leading-none">{product.name}</h2>
+                        <div className="text-[10px] font-black text-primary uppercase tracking-[0.4em] leading-none">{category.name}</div>
+                        <h2 className="text-2xl md:text-4xl font-black text-black uppercase tracking-tighter leading-tight md:leading-none">{product.name}</h2>
                         <div className="h-2 w-20 bg-primary border-2 border-black" />
                     </div>
 
                     <div className="space-y-6">
                         <div className="space-y-3">
                             <h4 className="text-[10px] font-black text-text-muted uppercase tracking-widest border-b-2 border-black/5 pb-2">Deskripsi Produk</h4>
-                            <div className="text-black font-medium leading-relaxed prose prose-sm">
+                            <div className="text-black font-medium leading-relaxed prose prose-sm text-xs md:text-sm">
                                 {product.description || 'Tidak ada deskripsi untuk produk ini.'}
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4 pt-4">
-                            <div className="p-4 bg-gray-50 rounded-2xl border border-black/5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 pt-4">
+                            <div className="p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl border border-black/5">
                                 <span className="block text-[8px] font-black text-text-muted uppercase mb-1">Status Delivery</span>
                                 <span className="text-[10px] font-bold text-black uppercase">{product.is_auto_delivery ? 'Kirim Otomatis (Instant)' : 'Proses Manual (1-10 Menit)'}</span>
                             </div>
-                            <div className="p-4 bg-gray-50 rounded-2xl border border-black/5">
+                            <div className="p-3 md:p-4 bg-gray-50 rounded-xl md:rounded-2xl border border-black/5">
                                 <span className="block text-[8px] font-black text-text-muted uppercase mb-1">Sistem Layanan</span>
                                 <span className="text-[10px] font-bold text-black uppercase">Aktif 24/7 Nonstop</span>
                             </div>
@@ -143,27 +143,27 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ isOpen, onClose
 
                     <div className="pt-8 border-t-[3px] border-dashed border-black/10 mt-auto">
                         <div className="flex items-center justify-between gap-6">
-                            <div>
+                            <div className="shrink-0">
                                 <span className="text-[10px] font-black text-text-muted uppercase tracking-widest block mb-1">HARGA TERBAIK</span>
-                                <div className="text-4xl font-black text-black tracking-tighter">
-                                    <span className="text-sm mr-1">Rp</span>
+                                <div className="text-2xl md:text-4xl font-black text-black tracking-tighter">
+                                    <span className="text-xs md:text-sm mr-1">Rp</span>
                                     {product.price.toLocaleString('id-ID')}
                                 </div>
                             </div>
-                            <button 
+                             <button 
                                 onClick={() => {
                                     onClose();
                                     onBuy(product);
                                 }}
                                 disabled={product.stock <= 0}
-                                className={`flex-1 py-5 rounded-4xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all ${
+                                className={`flex-1 py-4 md:py-5 rounded-2xl md:rounded-4xl font-black uppercase tracking-widest text-[10px] md:text-xs flex items-center justify-center gap-2 md:gap-3 transition-all ${
                                     product.stock <= 0 
                                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed border-2 border-gray-200' 
-                                    : 'bg-primary text-black border-[3px] border-black shadow-[8px_8px_0px_0px_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1'
+                                    : 'bg-primary text-black border-[3px] border-black shadow-[6px_6px_0px_0px_#000] md:shadow-[8px_8px_0px_0px_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1'
                                 }`}
                             >
                                 {product.stock <= 0 ? 'STOK KOSONG' : (
-                                    <>BELI SEKARANG <ArrowRight size={18} /></>
+                                    <>BELI <span className="hidden sm:inline">SEKARANG</span> <ArrowRight size={18} /></>
                                 )}
                             </button>
                         </div>
@@ -173,7 +173,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({ isOpen, onClose
             </div>
 
             {/* Footer */}
-            <div className="bg-black py-4 px-10 flex items-center justify-between border-t-[3px] border-black shrink-0">
+            <div className="bg-black py-3 md:py-4 px-6 md:px-10 flex flex-col md:flex-row items-center justify-between border-t-[3px] border-black shrink-0 gap-2">
               <div className="flex items-center gap-2">
                 <ShieldCheck size={14} className="text-primary" />
                 <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.2em]">SISTEM KEAMANAN TERVERIFIKASI</span>

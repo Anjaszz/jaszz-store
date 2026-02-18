@@ -133,3 +133,20 @@ BEGIN
     WHERE id = p_order_id;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Trigger to automatically decrement stock when a new order is created
+-- This fixes the RLS error where public users cannot update products table directly
+CREATE OR REPLACE FUNCTION decrement_stock_on_order()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE products
+    SET stock = stock - NEW.quantity
+    WHERE id = NEW.product_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_decrement_stock
+AFTER INSERT ON orders
+FOR EACH ROW
+EXECUTE FUNCTION decrement_stock_on_order();

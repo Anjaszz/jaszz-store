@@ -70,9 +70,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
         expires_at: expiresAt
       });
 
-      await ProductService.update(product.id, { 
-        stock: Math.max(0, product.stock - quantity) 
-      });
+      // Stock is now handled via database trigger (decrement_stock_on_order)
+      // to avoid RLS issues for non-authenticated users
 
       // Construct item details for Midtrans including fees
       const itemDetails = [
@@ -179,10 +178,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
             initial={{ scale: 0.98, opacity: 0, y: 40 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.98, opacity: 0, y: 40 }}
-            className="relative w-full max-w-xl bg-white rounded-4xl border-[3px] border-black shadow-[20px_20px_0px_0px_#000] flex flex-col max-h-[90vh] overflow-hidden"
+            className="relative w-full max-w-xl bg-white rounded-3xl md:rounded-4xl border-[3px] border-black shadow-[10px_10px_0px_0px_#000] md:shadow-[20px_20px_0px_0px_#000] flex flex-col max-h-[95vh] md:max-h-[90vh] overflow-hidden m-2"
           >
             {/* Header */}
-            <div className="bg-black py-6 px-10 flex items-center justify-between border-b-[3px] border-black shrink-0">
+            <div className="bg-black py-4 md:py-6 px-6 md:px-10 flex items-center justify-between border-b-[3px] border-black shrink-0">
               <div className="flex items-center gap-4">
                 <div className="bg-primary p-2.5 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_#000]">
                   <Zap size={22} className="text-black" />
@@ -192,23 +191,23 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
                   <p className="text-[10px] text-primary font-black uppercase tracking-widest mt-1.5 opacity-80">Final Step to Purchase</p>
                 </div>
               </div>
-              <button onClick={onClose} className="w-12 h-12 rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10">
-                <X size={28} />
+              <button onClick={onClose} className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-white/5 hover:bg-white/10 text-white flex items-center justify-center transition-all cursor-pointer border border-white/10">
+                <X size={24} />
               </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-10 space-y-10 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-6 md:p-10 space-y-8 md:space-y-10 custom-scrollbar">
                 {/* Product Info Compact */}
-                <div className="flex gap-6 p-6 bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200">
-                    <div className="w-20 h-20 bg-white border-2 border-black rounded-2xl overflow-hidden shrink-0 shadow-lg font-black text-2xl flex items-center justify-center">
+                <div className="flex flex-row items-center gap-4 md:gap-6 p-4 md:p-6 bg-gray-50 rounded-2xl md:rounded-3xl border-2 border-dashed border-gray-200">
+                    <div className="w-14 h-14 md:w-20 md:h-20 bg-white border-2 border-black rounded-xl md:rounded-2xl overflow-hidden shrink-0 shadow-lg font-black text-xl md:text-2xl flex items-center justify-center">
                         {product.image_url ? (
                             <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
                         ) : product.name.charAt(0)}
                     </div>
                     <div>
                         <div className="text-[10px] font-black uppercase tracking-widest text-primary-dark">{category.name}</div>
-                        <h4 className="text-lg font-black uppercase text-black line-clamp-1">{product.name}</h4>
-                        <div className="text-sm font-bold text-text-muted mt-1">@ Rp {product.price.toLocaleString('id-ID')}</div>
+                        <h4 className="text-base md:text-lg font-black uppercase text-black line-clamp-1">{product.name}</h4>
+                        <div className="text-xs md:text-sm font-bold text-text-muted mt-0.5 md:mt-1">@ Rp {product.price.toLocaleString('id-ID')}</div>
                     </div>
                 </div>
 
@@ -226,7 +225,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
                                     value={formValues[field] || ''}
                                     onChange={(e) => setFormValues(prev => ({ ...prev, [field]: e.target.value }))}
                                     placeholder={fieldLabels[field]?.placeholder}
-                                    className="w-full px-6 py-4 bg-gray-50 border-2 border-black rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all font-bold"
+                                    className="w-full px-5 md:px-6 py-3 md:py-4 bg-gray-50 border-2 border-black rounded-xl md:rounded-2xl outline-none focus:bg-white focus:ring-4 focus:ring-primary/10 transition-all font-bold text-sm md:text-base"
                                 />
                            </div>
                         ))}
@@ -237,10 +236,10 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
                                 Jumlah Pembelian
                             </label>
                             <div className="flex items-center gap-4">
-                                <div className="flex bg-gray-50 border-2 border-black rounded-2xl overflow-hidden p-1">
-                                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-12 h-12 flex items-center justify-center font-black text-xl hover:bg-red-50 text-red-500 transition-colors">-</button>
-                                    <input type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-16 h-12 text-center bg-transparent font-black text-lg outline-none" />
-                                    <button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} className="w-12 h-12 flex items-center justify-center font-black text-xl hover:bg-green-50 text-green-500 transition-colors">+</button>
+                                <div className="flex bg-gray-50 border-2 border-black rounded-xl md:rounded-2xl overflow-hidden p-1">
+                                    <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center font-black text-lg hover:bg-red-50 text-red-500 transition-colors">-</button>
+                                    <input type="number" value={quantity} onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))} className="w-12 md:w-16 h-10 md:h-12 text-center bg-transparent font-black text-base md:text-lg outline-none" />
+                                    <button onClick={() => setQuantity(q => Math.min(product.stock, q + 1))} className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center font-black text-lg hover:bg-green-50 text-green-500 transition-colors">+</button>
                                 </div>
                                 <div className="text-[10px] font-black uppercase tracking-widest text-text-muted">Stock: <span className="text-black">{product.stock}</span></div>
                             </div>
@@ -248,7 +247,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
                     </div>
 
                     {/* Price Breakdown */}
-                    <div className="bg-gray-50 rounded-3xl p-8 border-2 border-black space-y-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]">
+                    <div className="bg-gray-50 rounded-2xl md:rounded-3xl p-6 md:p-8 border-2 border-black space-y-4 shadow-[8px_8px_0px_0px_rgba(0,0,0,0.1)]">
                         <div className="flex justify-between items-center text-[10px] font-black uppercase tracking-widest text-text-muted">
                             <span>Subtotal ({quantity}x)</span>
                             <span className="text-black">Rp {basePrice.toLocaleString('id-ID')}</span>
@@ -276,18 +275,18 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
                             </div>
                         )}
                         <div className="flex justify-between items-center pt-4 border-t-[3px] border-black">
-                            <span className="text-xs font-black uppercase tracking-widest">Total Bayar</span>
-                            <span className="text-2xl font-black text-black">Rp {totalPrice.toLocaleString('id-ID')}</span>
+                            <span className="text-[10px] md:text-xs font-black uppercase tracking-widest">Total Bayar</span>
+                            <span className="text-xl md:text-2xl font-black text-black">Rp {totalPrice.toLocaleString('id-ID')}</span>
                         </div>
                     </div>
 
                     <button 
                         onClick={handleCheckout}
                         disabled={processing || quantity > product.stock}
-                        className={`w-full py-6 rounded-3xl font-black uppercase tracking-[0.2em] text-sm flex items-center justify-center gap-3 transition-all ${
+                        className={`w-full py-5 md:py-6 rounded-2xl md:rounded-3xl font-black uppercase tracking-[0.2em] text-xs md:text-sm flex items-center justify-center gap-3 transition-all ${
                             processing || quantity > product.stock
                             ? 'bg-gray-200 text-gray-400 cursor-not-allowed border-2 border-gray-300' 
-                            : 'bg-primary text-black border-4 border-black shadow-[12px_12px_0px_0px_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1'
+                            : 'bg-primary text-black border-4 border-black shadow-[8px_8px_0px_0px_#000] md:shadow-[12px_12px_0px_0px_#000] hover:shadow-none hover:translate-x-1 hover:translate-y-1'
                         }`}
                     >
                         {processing ? (
