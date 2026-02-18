@@ -127,11 +127,11 @@ const OrderTracking: React.FC = () => {
 
       {/* Local History Section */}
       {!hasSearched && localOrders.length > 0 && (
-        <div className="space-y-6 mb-12">
-          <h3 className="font-black text-sm uppercase tracking-widest text-text-muted px-2">Pesanan Terakhir Anda (Local)</h3>
-          <div className="grid gap-4">
+        <div className="space-y-6 mb-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <h3 className="font-black text-[10px] md:text-sm uppercase tracking-widest text-text-muted px-2">Pesanan Terakhir Anda</h3>
+          <div className="flex flex-col gap-4">
             {localOrders.map((order) => (
-              <Link key={order.id} to={`/order/${order.id}`}>
+              <Link key={order.id} to={`/order/${order.id}`} className="block group">
                 <OrderCard order={order} />
               </Link>
             ))}
@@ -140,17 +140,19 @@ const OrderTracking: React.FC = () => {
       )}
 
       {hasSearched && (
-        <div className="space-y-6">
-          <h3 className="font-black text-sm uppercase tracking-widest text-primary-dark px-2">Hasil Pencarian</h3>
+        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <h3 className="font-black text-[10px] md:text-sm uppercase tracking-widest text-primary-dark px-2">Hasil Pencarian</h3>
           {orders.length > 0 ? (
-            orders.map((order) => (
-              <Link key={order.id} to={`/order/${order.id}`}>
-                <OrderCard order={order} />
-              </Link>
-            ))
+            <div className="flex flex-col gap-4">
+              {orders.map((order) => (
+                <Link key={order.id} to={`/order/${order.id}`} className="block group">
+                  <OrderCard order={order} />
+                </Link>
+              ))}
+            </div>
           ) : (
-            <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-200">
-              <p className="text-text-muted">Tidak ditemukan pesanan untuk email ini.</p>
+            <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
+              <p className="text-text-muted font-bold">Tidak ditemukan pesanan untuk email ini.</p>
             </div>
           )}
         </div>
@@ -160,25 +162,27 @@ const OrderTracking: React.FC = () => {
 };
 
 const OrderCard = ({ order }: { order: Order & { product: Product } }) => (
-  <div className="glass-card p-6 flex flex-col md:flex-row items-center justify-between gap-6 hover:border-primary/50 transition-all group">
-    <div className="flex items-center gap-6 flex-1 w-full">
-      <div className="w-16 h-16 rounded-3xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
-        <ShoppingCart className="text-primary-dark" size={32} />
+  <div className="glass-card p-5 md:p-6 flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6 hover:border-primary transition-all group relative overflow-hidden">
+    <div className="flex items-center gap-4 md:gap-6 flex-1 w-full">
+      <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl md:rounded-3xl bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform border border-primary/20">
+        <ShoppingCart className="text-primary-dark" size={24} />
       </div>
       <div className="flex-1 min-w-0">
-        <h3 className="font-black text-lg truncate uppercase tracking-tight">{order.product.name}</h3>
-        <p className="text-sm text-text-muted font-mono bg-gray-50 px-2 py-0.5 rounded inline-block mt-1">ID: {order.customer_details.target_id}</p>
-        <p className="text-[10px] text-text-muted font-bold uppercase tracking-widest mt-2">
+        <h3 className="font-black text-sm md:text-lg truncate uppercase tracking-tight text-black">{order.product.name}</h3>
+        <div className="flex flex-wrap items-center gap-2 mt-1">
+          <p className="text-[9px] md:text-sm text-text-muted font-mono bg-gray-100 px-2 py-0.5 rounded border border-gray-200">ID: {order.customer_details.target_id}</p>
+        </div>
+        <p className="text-[9px] text-text-muted font-bold uppercase tracking-widest mt-2">
           {new Date(order.created_at).toLocaleDateString('id-ID', { dateStyle: 'long' })}
         </p>
       </div>
     </div>
 
-    <div className="flex flex-row md:flex-col items-center md:items-end gap-6 md:gap-2 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0">
-      <div className="font-black text-xl text-primary-dark">
+    <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-center gap-4 w-full md:w-auto border-t md:border-t-0 pt-4 md:pt-0">
+      <div className="font-black text-lg md:text-xl text-black">
         Rp {order.total_price.toLocaleString('id-ID')}
       </div>
-      <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 ${
+      <span className={`px-3 md:px-4 py-1 md:py-1.5 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 md:gap-2 ${
         order.status === 'pending' ? 'bg-orange-50 text-orange-600 border border-orange-100' : 
         order.status === 'processing' ? 'bg-blue-50 text-blue-600 border border-blue-100' : 
         order.status === 'completed' ? 'bg-green-50 text-green-600 border border-green-100' :

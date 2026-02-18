@@ -5,12 +5,14 @@ import { OrderService, ProductService } from '../services/api';
 import type { Order, Product } from '../types';
 import { loadMidtransSnap } from '../lib/midtrans';
 import toast from 'react-hot-toast';
+import ReceiptModal from '../components/ui/ReceiptModal';
 
 const OrderDetail: React.FC = () => {
   const { orderId } = useParams<{ orderId: string }>();
   const [order, setOrder] = useState<(Order & { product: Product }) | null>(null);
   const [loading, setLoading] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string>('');
+  const [isReceiptOpen, setIsReceiptOpen] = useState(false);
 
   const handleRevertStock = async (product: Product, quantity: number) => {
     try {
@@ -132,14 +134,17 @@ const OrderDetail: React.FC = () => {
         <Link to="/cek-pesanan" className="text-text-muted hover:text-primary-dark flex items-center gap-2 text-sm font-medium">
           <ChevronLeft size={18} /> Riwayat Pesanan
         </Link>
-        <button onClick={() => window.print()} className="p-2 text-primary-dark hover:bg-primary/10 rounded-xl transition-all">
-          <Download size={20} />
+        <button 
+          onClick={() => setIsReceiptOpen(true)} 
+          className="flex items-center gap-2 px-6 py-3 bg-black text-white rounded-2xl hover:bg-primary hover:text-black transition-all font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/10 active:scale-95"
+        >
+          <Download size={16} strokeWidth={3} /> Download Struk
         </button>
       </div>
 
       <div className="glass-card overflow-hidden shadow-2xl shadow-primary/5">
         {/* Header Struk */}
-        <div className="bg-primary/10 p-8 border-b border-primary/20 text-center relative overflow-hidden">
+        <div className="bg-primary/10 p-6 md:p-8 border-b border-primary/20 text-center relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-10 rotate-12">
             <ShoppingBag size={120} />
           </div>
@@ -153,63 +158,63 @@ const OrderDetail: React.FC = () => {
              <Clock className="text-white" size={40} />}
           </div>
           
-          <h1 className="text-2xl font-black uppercase tracking-tight">
+          <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight">
             {order.status === 'pending' ? 'Menunggu Pembayaran' :
              order.status === 'processing' ? 'Pesanan Diproses' :
              order.status === 'completed' ? 'Pesanan Berhasil' : 'Pesanan Dibatalkan'}
           </h1>
-          <p className="text-text-muted text-sm mt-1">Order ID: {order.id.slice(0, 8).toUpperCase()}</p>
+          <p className="text-text-muted text-[10px] md:text-sm mt-1">Order ID: {order.id.slice(0, 8).toUpperCase()}</p>
         </div>
 
         {/* Detail Ringkasan */}
-        <div className="p-8 space-y-8">
-          <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                <ShoppingBag className="text-primary" size={24} />
+        <div className="p-5 md:p-8 space-y-6 md:space-y-8">
+          <div className="flex flex-row items-center justify-between p-4 bg-gray-50 rounded-2xl gap-4">
+            <div className="flex items-center gap-3 md:gap-4">
+              <div className="w-10 h-10 md:w-12 md:h-12 bg-white rounded-xl flex items-center justify-center shadow-sm shrink-0">
+                <ShoppingBag className="text-primary" size={20} />
               </div>
               <div>
-                <p className="text-xs text-text-muted font-bold uppercase tracking-wider">Metode Pembayaran</p>
-                <p className="font-bold">E-Wallet / Transfer Bank</p>
+                <p className="text-[8px] md:text-xs text-text-muted font-bold uppercase tracking-wider">Metode Pembayaran</p>
+                <p className="text-xs md:text-base font-bold">E-Wallet / Transfer</p>
               </div>
             </div>
-            <div className={`px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+            <div className={`px-3 md:px-4 py-1 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest shrink-0 ${
                 order.payment_status === 'paid' ? 'bg-green-100 text-green-600' : 'bg-orange-100 text-orange-600'
             }`}>
                 {order.payment_status}
             </div>
           </div>
 
-          <div className="space-y-4">
-            <h3 className="font-black text-sm uppercase tracking-widest text-text-muted border-b border-gray-100 pb-2">Informasi Pesanan</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+           <div className="space-y-4">
+            <h3 className="font-black text-[10px] md:text-sm uppercase tracking-widest text-text-muted border-b border-gray-100 pb-2">Informasi Pesanan</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-text-muted block font-bold mb-1">Item</label>
-                  <p className="font-bold text-lg">{order.product.name}</p>
+                  <label className="text-[10px] md:text-xs text-text-muted block font-bold mb-1">Item</label>
+                  <p className="font-bold text-base md:text-lg">{order.product.name}</p>
                 </div>
                 <div>
-                  <label className="text-xs text-text-muted block font-bold mb-1">Target ID / No HP</label>
+                  <label className="text-[10px] md:text-xs text-text-muted block font-bold mb-1">Target ID / No HP</label>
                   <div className="flex items-center gap-2">
-                    <p className="font-mono bg-primary/5 px-3 py-1 rounded-lg text-primary-dark font-bold">{order.customer_details.target_id}</p>
-                    <button onClick={() => copyToClipboard(order.customer_details.target_id!)} className="p-1 hover:text-primary transition-colors"><Copy size={14}/></button>
+                    <p className="font-mono bg-primary/5 px-3 py-1 rounded-lg text-primary-dark font-bold text-sm md:text-base break-all">{order.customer_details.target_id}</p>
+                    <button onClick={() => copyToClipboard(order.customer_details.target_id!)} className="p-1 hover:text-primary transition-colors shrink-0"><Copy size={14}/></button>
                   </div>
                 </div>
                 {order.customer_details.server_id && (
                   <div>
-                    <label className="text-xs text-text-muted block font-bold mb-1">Server</label>
-                    <p className="font-bold">{order.customer_details.server_id}</p>
+                    <label className="text-[10px] md:text-xs text-text-muted block font-bold mb-1">Server</label>
+                    <p className="font-bold text-sm md:text-base">{order.customer_details.server_id}</p>
                   </div>
                 )}
               </div>
               <div className="space-y-4 md:text-right">
                 <div>
-                  <label className="text-xs text-text-muted block font-bold mb-1">Tanggal</label>
-                  <p className="font-bold">{new Date(order.created_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}</p>
+                  <label className="text-[10px] md:text-xs text-text-muted block font-bold mb-1">Tanggal</label>
+                  <p className="font-bold text-sm md:text-base">{new Date(order.created_at).toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' })}</p>
                 </div>
                 <div>
-                  <label className="text-xs text-text-muted block font-bold mb-1">Email</label>
-                  <p className="font-bold truncate">{order.user_email}</p>
+                  <label className="text-[10px] md:text-xs text-text-muted block font-bold mb-1">Email</label>
+                  <p className="font-bold text-sm md:text-base truncate">{order.user_email}</p>
                 </div>
               </div>
             </div>
@@ -239,9 +244,9 @@ const OrderDetail: React.FC = () => {
               </div>
             )}
             
-            <div className="flex justify-between items-center p-6 bg-primary/5 rounded-2xl border-2 border-primary/20 mt-4 shadow-sm">
-                <span className="text-lg font-black uppercase tracking-widest">Total Bayar</span>
-                <span className="text-2xl font-black text-primary-dark">Rp {order.total_price.toLocaleString('id-ID')}</span>
+             <div className="flex justify-between items-center p-5 md:p-6 bg-primary/5 rounded-2xl border-2 border-primary/20 mt-4 shadow-sm">
+                <span className="text-sm md:text-lg font-black uppercase tracking-widest leading-none">Total Bayar</span>
+                <span className="text-xl md:text-2xl font-black text-primary-dark leading-none">Rp {order.total_price.toLocaleString('id-ID')}</span>
             </div>
           </div>
 
@@ -250,18 +255,18 @@ const OrderDetail: React.FC = () => {
             <div className="space-y-6">
               {order.product.requires_delivery_data || order.delivery_data ? (
                 // CASE 1: Needs Data (Token, Account, etc)
-                <div className="bg-green-50 p-6 rounded-3xl border border-green-100 space-y-4 animate-in fade-in zoom-in-95">
+                 <div className="bg-green-50 p-5 md:p-6 rounded-2xl md:rounded-3xl border border-green-100 space-y-4 animate-in fade-in zoom-in-95">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center text-white">
+                        <div className="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center text-white shrink-0">
                             <Zap size={20} />
                         </div>
                         <div>
-                            <h4 className="font-black text-xs uppercase tracking-widest text-green-800">Data Terkirim</h4>
-                            <p className="text-sm text-green-700 font-medium">Pesanan Anda telah berhasil dikirim!</p>
+                            <h4 className="font-black text-[10px] md:text-xs uppercase tracking-widest text-green-800">Data Terkirim</h4>
+                            <p className="text-xs md:text-sm text-green-700 font-medium">Pesanan Anda telah berhasil dikirim!</p>
                         </div>
                     </div>
-                    <div className="bg-white p-5 rounded-2xl border border-green-200 shadow-sm relative group">
-                        <pre className="font-mono text-lg font-black text-center text-green-900 whitespace-pre-wrap break-all">
+                    <div className="bg-white p-4 md:p-5 rounded-2xl border border-green-200 shadow-sm relative group">
+                        <pre className="font-mono text-base md:text-lg font-black text-center text-green-900 whitespace-pre-wrap break-all">
                             {order.delivery_data || 'Data sedang disiapkan...'}
                         </pre>
                         {order.delivery_data && (
@@ -276,32 +281,32 @@ const OrderDetail: React.FC = () => {
                           </button>
                         )}
                     </div>
-                    <p className="text-[10px] text-green-600 font-bold text-center uppercase tracking-widest">
+                    <p className="text-[8px] md:text-[10px] text-green-600 font-bold text-center uppercase tracking-widest">
                         PENTING: Jangan berikan data di atas kepada siapapun!
                     </p>
                 </div>
               ) : (
                 // CASE 2: Direct Top-up (Diamonds, etc)
-                <div className="bg-blue-50 p-8 rounded-[2.5rem] border border-blue-100 space-y-6 text-center animate-in fade-in zoom-in-95">
-                  <div className="w-20 h-20 bg-blue-500 rounded-full flex items-center justify-center text-white mx-auto shadow-lg shadow-blue-200">
-                    <CheckCircle2 size={40} />
+                 <div className="bg-blue-50 p-6 md:p-8 rounded-3xl md:rounded-4xl border border-blue-100 space-y-4 md:space-y-6 text-center animate-in fade-in zoom-in-95">
+                  <div className="w-14 h-14 md:w-20 md:h-20 bg-blue-500 rounded-full flex items-center justify-center text-white mx-auto shadow-lg shadow-blue-200">
+                    <CheckCircle2 size={32} />
                   </div>
-                  <div className="space-y-3">
-                    <h4 className="text-xl font-black text-blue-900 uppercase tracking-tight">Top-Up Berhasil!</h4>
-                    <p className="text-sm text-blue-700 font-medium leading-relaxed">
+                  <div className="space-y-2 md:space-y-3">
+                    <h4 className="text-lg md:text-xl font-black text-blue-900 uppercase tracking-tight">Top-Up Berhasil!</h4>
+                    <p className="text-xs md:text-sm text-blue-700 font-medium leading-relaxed">
                       Layanan <strong>{order.product.name}</strong> telah berhasil ditambahkan ke akun Anda. 
                       Silakan cek aplikasi/game Anda sekarang.
                     </p>
                   </div>
                   <div className="pt-4 border-t border-blue-200/50">
-                    <p className="text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mb-4">Belum Masuk?</p>
+                    <p className="text-[8px] md:text-[10px] text-blue-500 font-black uppercase tracking-[0.2em] mb-4">Belum Masuk?</p>
                     <a 
                       href={`https://wa.me/628123456789?text=Halo%20Admin,%20pesanan%20saya%20dengan%20ID%20${order.id}%20statusnya%20sudah%20berhasil%20tapi%20produk%20belum%20masuk.`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-2 px-8 py-3 bg-blue-600 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
+                      className="inline-flex items-center gap-2 px-6 md:px-8 py-3 bg-blue-600 text-white rounded-xl md:rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest hover:bg-blue-700 transition-all shadow-lg shadow-blue-200"
                     >
-                      Hubungi Customer Service <ExternalLink size={14} />
+                      Customer Service <ExternalLink size={12} />
                     </a>
                   </div>
                 </div>
@@ -309,8 +314,8 @@ const OrderDetail: React.FC = () => {
             </div>
           )}
 
-          {order.payment_status === 'paid' && order.status === 'canceled' && (
-            <div className="bg-red-50 p-8 rounded-[2rem] border border-red-100 space-y-6 text-center animate-in fade-in zoom-in-95">
+           {order.payment_status === 'paid' && order.status === 'canceled' && (
+            <div className="bg-red-50 p-8 rounded-4xl border border-red-100 space-y-6 text-center animate-in fade-in zoom-in-95">
                 <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center text-white mx-auto shadow-lg shadow-red-200">
                     <XCircle size={40} />
                 </div>
@@ -333,25 +338,25 @@ const OrderDetail: React.FC = () => {
             </div>
           )}
 
-          {order.payment_status === 'unpaid' && order.status === 'pending' && (
-            <div className="bg-orange-50 p-6 rounded-2xl border border-orange-100 space-y-4">
-                <div className="flex gap-4 items-center justify-between">
+           {order.payment_status === 'unpaid' && order.status === 'pending' && (
+            <div className="bg-orange-50 p-5 md:p-6 rounded-2xl border border-orange-100 space-y-4">
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
                     <div className="flex gap-4">
                         <Clock className="text-orange-500 shrink-0" />
-                        <div>
-                            <h4 className="font-bold text-orange-900">Pembayaran Belum Selesai</h4>
-                            <p className="text-sm text-orange-700">Silakan selesaikan pembayaran agar pesanan dapat segera kami proses.</p>
+                        <div className="text-center sm:text-left">
+                            <h4 className="font-bold text-orange-900 text-sm md:text-base">Pembayaran Belum Selesai</h4>
+                            <p className="text-xs md:text-sm text-orange-700">Selesaikan pembayaran agar pesanan segera diproses.</p>
                         </div>
                     </div>
                     {timeLeft && (
-                        <div className="bg-black text-primary px-4 py-2 rounded-xl font-black font-mono text-xl shadow-lg animate-pulse">
+                        <div className="bg-black text-primary px-4 py-2 rounded-xl font-black font-mono text-lg md:text-xl shadow-lg animate-pulse">
                             {timeLeft}
                         </div>
                     )}
                 </div>
                 <button 
                   onClick={handleContinuePayment}
-                  className="w-full btn-primary py-4 flex items-center justify-center gap-2 shadow-xl shadow-primary/20"
+                  className="w-full btn-primary py-4 flex items-center justify-center gap-2 shadow-xl shadow-primary/20 text-xs md:text-sm"
                 >
                     Lanjutkan Pembayaran <ExternalLink size={18} />
                 </button>
@@ -367,6 +372,12 @@ const OrderDetail: React.FC = () => {
           </p>
         </div>
       </div>
+
+      <ReceiptModal 
+        isOpen={isReceiptOpen}
+        onClose={() => setIsReceiptOpen(false)}
+        order={order}
+      />
     </div>
   );
 };
