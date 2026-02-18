@@ -1,0 +1,66 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #FFD700; /* Gold/Yellow for high-end feel */
+  --color-primary-dark: #ccac00;
+  --color-primary-light: #fff3b0;
+  --color-accent: #000000;
+  --color-surface: #ffffff;
+  --color-background: #ffffff;
+  --color-text: #0a0a0a;
+  --color-text-muted: #666666;
+  
+  --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+@layer base {
+  html, body {
+    @apply overflow-x-hidden max-w-full;
+  }
+  body {
+    @apply bg-background text-text font-sans antialiased selection:bg-primary/30;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-primary hover:bg-black text-black hover:text-white font-black py-4 px-8 rounded-2xl transition-all duration-500 shadow-xl shadow-primary/20 hover:shadow-black/20 active:scale-95 uppercase tracking-widest text-xs flex items-center justify-center gap-2;
+  }
+  
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/40 rounded-[2.5rem] shadow-2xl;
+  }
+
+  .section-container {
+    @apply max-w-7xl mx-auto px-6 py-14;
+  }
+
+  .premium-shadow {
+    shadow-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 25px 50px -12px var(--tw-shadow-color);
+  }
+
+  .neo-brutalism {
+    @apply border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-x-[2px] active:translate-y-[2px] active:shadow-none;
+  }
+
+  .neo-brutalism-gold {
+    @apply border-2 border-black shadow-[4px_4px_0px_0px_rgba(255,215,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(255,215,0,1)] transition-all;
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+:root {
+  font-family: 'Outfit', 'Inter', sans-serif;
+  color-scheme: light;
+}
+
