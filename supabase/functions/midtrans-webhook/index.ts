@@ -65,45 +65,50 @@ serve(async (req) => {
 
       if (product && product.is_auto_delivery) {
         console.log(
-          "Auto-delivery is enabled for this product. Fetching stock...",
+          `Auto-delivery is enabled. Qty: ${order.quantity}. Fetching stock...`,
         );
 
-        // 2. Try to get available stock
-        const { data: stockItem, error: stockError } = await supabase
+        // 2. Try to get available stock according to quantity
+        const { data: stockItems, error: stockError } = await supabase
           .from("product_stock_items")
-          .select("*")
+          .select("id, content")
           .eq("product_id", order.product_id)
           .eq("is_used", false)
-          .limit(1)
-          .maybeSingle();
+          .limit(order.quantity);
 
         if (stockError) {
-          console.error("Error fetching stock item:", stockError);
+          console.error("Error fetching stock items:", stockError);
         }
 
-        if (stockItem) {
+        if (stockItems && stockItems.length >= order.quantity) {
           console.log(
-            `Stock item found: ${stockItem.id}. Executing delivery...`,
+            `Found ${stockItems.length} items. Executing delivery...`,
           );
-          // 3. Mark stock as used and update order via RPC
+
+          const ids = stockItems.map((item) => item.id);
+          const combinedContent = stockItems
+            .map((item) => item.content)
+            .join("\n");
+
+          // 3. Mark all stock as used and update order via RPC
           const { error: rpcError } = await supabase.rpc(
             "handle_auto_delivery",
             {
               p_order_id: orderId,
-              p_stock_item_id: stockItem.id,
-              p_content: stockItem.content,
+              p_stock_item_ids: ids,
+              p_content: combinedContent,
             },
           );
 
           if (rpcError) {
             console.error("RPC Error (handle_auto_delivery):", rpcError);
           } else {
-            console.log("Auto-delivery successful!");
+            console.log("Auto-delivery successful for all items!");
             orderStatus = "completed";
           }
         } else {
           console.log(
-            "No available stock for auto-delivery. Order remains in processing.",
+            `Insufficient stock for auto-delivery. Need ${order.quantity}, have ${stockItems?.length || 0}. Order remains in processing.`,
           );
         }
       } else {

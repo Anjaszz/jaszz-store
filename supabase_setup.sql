@@ -117,17 +117,19 @@ CREATE POLICY "Allow admin manage settings" ON shop_settings FOR ALL USING (auth
 INSERT INTO shop_settings (key, value)
 VALUES ('fee_settings', '{"admin_fee_percent": 0, "tax_percent": 0, "service_fee_percent": 0}');
 
--- Add handle_auto_delivery RPC
+-- Add handle_auto_delivery RPC to support multiple items
 CREATE OR REPLACE FUNCTION handle_auto_delivery(
     p_order_id UUID,
-    p_stock_item_id UUID,
+    p_stock_item_ids UUID[],
     p_content TEXT
 ) RETURNS VOID AS $$
 BEGIN
+    -- Mark multiple stock items as used
     UPDATE product_stock_items 
     SET is_used = true, order_id = p_order_id 
-    WHERE id = p_stock_item_id;
+    WHERE id = ANY(p_stock_item_ids);
 
+    -- Complete the order with combined content
     UPDATE orders 
     SET status = 'completed', delivery_data = p_content 
     WHERE id = p_order_id;
@@ -135,18 +137,65 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Trigger to automatically decrement stock when a new order is created
--- This fixes the RLS error where public users cannot update products table directly
+-- Now with strict stock validation to prevent overselling
 CREATE OR REPLACE FUNCTION decrement_stock_on_order()
 RETURNS TRIGGER AS $$
+DECLARE
+    v_stock INTEGER;
 BEGIN
+    -- Get current stock with LOCK for atomic transaction
+    SELECT stock INTO v_stock FROM products WHERE id = NEW.product_id FOR UPDATE;
+    
+    -- Validate stock availability
+    IF v_stock < NEW.quantity THEN
+        RAISE EXCEPTION 'Insufficient stock: Available %, Requested %', v_stock, NEW.quantity;
+    END IF;
+
+    -- Decrement stock
     UPDATE products
     SET stock = stock - NEW.quantity
     WHERE id = NEW.product_id;
+    
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER trigger_decrement_stock
-AFTER INSERT ON orders
+BEFORE INSERT ON orders
 FOR EACH ROW
 EXECUTE FUNCTION decrement_stock_on_order();
+
+-- Trigger to automatically increment product stock when new items are added to product_stock_items
+CREATE OR REPLACE FUNCTION increment_stock_on_item_add()
+RETURNS TRIGGER AS $$
+BEGIN
+    UPDATE products
+    SET stock = stock + 1
+    WHERE id = NEW.product_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_increment_stock_on_add
+AFTER INSERT ON product_stock_items
+FOR EACH ROW
+EXECUTE FUNCTION increment_stock_on_item_add();
+
+-- Trigger to automatically decrement product stock when items are deleted from product_stock_items
+CREATE OR REPLACE FUNCTION decrement_stock_on_item_delete()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Only decrement if it was an unused item (avoid double decrement with order completed)
+    IF OLD.is_used = false THEN
+        UPDATE products
+        SET stock = GREATEST(0, stock - 1)
+        WHERE id = OLD.product_id;
+    END IF;
+    RETURN OLD;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_decrement_stock_on_delete
+AFTER DELETE ON product_stock_items
+FOR EACH ROW
+EXECUTE FUNCTION decrement_stock_on_item_delete();

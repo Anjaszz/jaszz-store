@@ -46,6 +46,13 @@ const OrderDetail: React.FC = () => {
       }
       
       setOrder(data);
+      
+      // Save to local history
+      const history = JSON.parse(localStorage.getItem('order_history') || '[]');
+      if (!history.includes(data.id)) {
+        const newHistory = [data.id, ...history].slice(0, 10);
+        localStorage.setItem('order_history', JSON.stringify(newHistory));
+      }
     } catch (err) {
       console.error('Failed to fetch order:', err);
     } finally {

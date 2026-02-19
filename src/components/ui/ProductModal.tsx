@@ -33,19 +33,25 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onSave })
   });
 
   useEffect(() => {
-    const fetchCategories = async () => {
+    const init = async () => {
       try {
-        const data = await CategoryService.getAll();
-        setCategories(data);
-        if (data.length > 0 && !formData.category_id) {
-          setFormData(prev => ({ ...prev, category_id: data[0].id }));
+        const cats = await CategoryService.getAll();
+        setCategories(cats);
+        if (cats.length > 0 && !formData.category_id) {
+          setFormData(prev => ({ ...prev, category_id: cats[0].id }));
+        }
+
+        // Fetch existing stock items if editing
+        if (product?.id && product.is_auto_delivery) {
+          const items = await ProductService.getAvailableStockItems(product.id);
+          setStockInput(items.join('\n'));
         }
       } catch (err) {
-        console.error('Failed to fetch categories:', err);
+        console.error('Failed to init modal:', err);
       }
     };
-    fetchCategories();
-  }, []);
+    init();
+  }, [product?.id]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -74,28 +80,32 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onSave })
         finalImageUrl = await StorageService.uploadProductImage(imageFile);
       }
 
+      const itemsToInsert = formData.is_auto_delivery ? stockInput.split('\n').filter(i => i.trim()) : [];
+      
+      // Stock updates:
+      // If manual: use formData.stock
+      // If auto: triggers will handle products.stock based on additions/deletions
       const payload = {
         ...formData,
         image_url: finalImageUrl,
-        stock: formData.is_auto_delivery ? 0 : formData.stock,
         category: categories.find(c => c.id === formData.category_id)?.name || ''
       };
 
       if (product?.id) {
+        // Update basic product info
         await ProductService.update(product.id, payload);
-        if (formData.is_auto_delivery && stockInput.trim()) {
-            const items = stockInput.split('\n').filter(i => i.trim());
-            if (items.length > 0) {
-              await ProductService.addStockItems(product.id, items);
-            }
+        
+        // Update stock items ONLY if auto-delivery is on
+        if (formData.is_auto_delivery) {
+          await ProductService.replaceStockItems(product.id, itemsToInsert);
         }
       } else {
+        // Create product
         const newProduct = await ProductService.create(payload);
-        if (formData.is_auto_delivery && stockInput.trim()) {
-            const items = stockInput.split('\n').filter(i => i.trim());
-            if (items.length > 0) {
-              await ProductService.addStockItems(newProduct.id, items);
-            }
+        
+        // Add initial stock if auto-delivery
+        if (formData.is_auto_delivery && itemsToInsert.length > 0) {
+          await ProductService.addStockItems(newProduct.id, itemsToInsert);
         }
       }
 

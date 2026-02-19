@@ -133,15 +133,31 @@ export const ProductService = {
     if (error) throw error;
   },
 
-  async getAvailableStockCount(productId: string) {
-    const { count, error } = await supabase
+  async getAvailableStockItems(productId: string) {
+    const { data, error } = await supabase
       .from("product_stock_items")
-      .select("*", { count: "exact", head: true })
+      .select("content")
       .eq("product_id", productId)
       .eq("is_used", false);
 
     if (error) throw error;
-    return count || 0;
+    return data.map((item) => item.content);
+  },
+
+  async replaceStockItems(productId: string, items: string[]) {
+    // 1. Delete all unused stock items for this product
+    const { error: deleteError } = await supabase
+      .from("product_stock_items")
+      .delete()
+      .eq("product_id", productId)
+      .eq("is_used", false);
+
+    if (deleteError) throw deleteError;
+
+    // 2. Insert new ones
+    if (items.length > 0) {
+      await this.addStockItems(productId, items);
+    }
   },
 };
 

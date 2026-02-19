@@ -103,7 +103,7 @@ const Home: React.FC = () => {
                             className="inline-flex items-center gap-3 bg-white/5 backdrop-blur-xl border border-white/10 px-6 py-2 rounded-full"
                         >
                             <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
-                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Official Game Store</span>
+                            <span className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Official Store Online</span>
                         </motion.div>
                         <h1 className="text-5xl md:text-7xl lg:text-9xl font-black text-white leading-none uppercase tracking-tighter">
                             LEVEL UP <br/>

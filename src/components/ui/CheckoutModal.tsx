@@ -46,9 +46,24 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
     }
 
     const contactEmail = formValues['email'] || 'no-reply@jaszz-store.com';
+    setProcessing(true);
 
     try {
-      setProcessing(true);
+      // 1. Double check latest stock from DB before proceeding
+      const { data: latestProduct, error: stockError } = await OrderService.supabase
+        .from('products')
+        .select('stock')
+        .eq('id', product.id)
+        .single();
+      
+      if (stockError) throw stockError;
+      
+      if (latestProduct.stock < quantity) {
+        toast.error(`Maaf, stok tidak mencukupi. Sisa stok: ${latestProduct.stock}`);
+        setProcessing(false);
+        return;
+      }
+
       const expiresAt = new Date(Date.now() + 30 * 60000).toISOString();
 
       const newOrder = await OrderService.create({
@@ -145,6 +160,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, product,
         onError: () => toast.error('Pembayaran gagal, silakan coba lagi.'),
         onClose: () => navigate(`/order/${newOrder.id}`)
       });
+
+      // Save to local history
+      const history = JSON.parse(localStorage.getItem('order_history') || '[]');
+      if (!history.includes(newOrder.id)) {
+        const newHistory = [newOrder.id, ...history].slice(0, 10);
+        localStorage.setItem('order_history', JSON.stringify(newHistory));
+      }
 
     } catch (err) {
       console.error('Checkout failed:', err);
